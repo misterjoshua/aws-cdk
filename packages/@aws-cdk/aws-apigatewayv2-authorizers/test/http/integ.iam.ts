@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
-import { User, CfnAccessKey, ManagedPolicy } from '@aws-cdk/aws-iam';
+import { ManagedPolicy } from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { App, Stack, CfnOutput } from '@aws-cdk/core';
 import { HttpIamAuthorizer } from '../../lib/http/iam';
@@ -33,14 +33,32 @@ httpApi.addRoutes({
   authorizer,
 });
 
-const user = new User(stack, 'test-user');
+const code = lambda.Code.fromDockerBuild(path.join(__dirname, '../integ.iam.handler'));
 
-user.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayInvokeFullAccess'));
-
-const accessKey = new CfnAccessKey(stack, 'access-key', {
-  userName: user.userName,
+const testSigned = new lambda.Function(stack, 'TestSigned', {
+  runtime: lambda.Runtime.PYTHON_3_9,
+  handler: 'handler.test_signed',
+  code: code,
+  environment: {
+    API_ENDPOINT: httpApi.url!,
+  },
 });
 
-new CfnOutput(stack, 'api_url', { value: httpApi.url! });
-new CfnOutput(stack, 'access_key', { value: accessKey.ref });
-new CfnOutput(stack, 'secret_access_key', { value: accessKey.attrSecretAccessKey });
+testSigned.role?.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayInvokeFullAccess'));
+
+new CfnOutput(stack, 'TestSignedFunction', {
+  value: testSigned.functionName,
+});
+
+const testUnsigned = new lambda.Function(stack, 'TestUnsigned', {
+  runtime: lambda.Runtime.PYTHON_3_9,
+  handler: 'handler.test_unsigned',
+  code: code,
+  environment: {
+    API_ENDPOINT: httpApi.url!,
+  },
+});
+
+new CfnOutput(stack, 'TestUnsignedFunctionName', {
+  value: testUnsigned.functionName,
+});

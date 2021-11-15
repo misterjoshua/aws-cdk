@@ -1,5 +1,4 @@
-import '@aws-cdk/assert-internal/jest';
-import { ABSENT } from '@aws-cdk/assert-internal';
+import { Match, Template } from '@aws-cdk/assertions';
 import { HttpApi, IHttpRouteIntegration, HttpRouteIntegrationBindOptions, PayloadFormatVersion, HttpIntegrationType } from '@aws-cdk/aws-apigatewayv2';
 import { Stack } from '@aws-cdk/core';
 import { HttpIamAuthorizer } from '../../lib/http/iam';
@@ -20,10 +19,10 @@ describe('HttpIamAuthorizer', () => {
     });
 
     // THEN
-    expect(stack).toHaveResource('AWS::ApiGatewayV2::Route', {
+    Template.fromStack(stack).hasResourceProperties('AWS::ApiGatewayV2::Route', Match.objectLike({
       AuthorizationType: 'AWS_IAM',
-      AuthorizerId: ABSENT,
-    });
+      AuthorizerId: Match.absent(),
+    }));
   });
 
   test('default integration', () => {
@@ -38,10 +37,10 @@ describe('HttpIamAuthorizer', () => {
     });
 
     // THEN
-    expect(stack).toHaveResource('AWS::ApiGatewayV2::Route', {
+    Template.fromStack(stack).hasResourceProperties('AWS::ApiGatewayV2::Route', Match.objectLike({
       AuthorizationType: 'AWS_IAM',
-      AuthorizerId: ABSENT,
-    });
+      AuthorizerId: Match.absent(),
+    }));
   });
 });
 
