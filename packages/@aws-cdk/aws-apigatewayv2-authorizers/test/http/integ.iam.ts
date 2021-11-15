@@ -8,9 +8,8 @@ import { HttpIamAuthorizer } from '../../lib/http/iam';
 
 /*
  * Stack verification steps:
- * * `curl <url>` should return 403
- * * `curl -H 'Authorization: ' -H 'x-amz-date: ' -H 'Accept: application/json' <url>` should return 200
- * @see [../integ.iam.signature/README.md] to generate header values using this stack's outputs
+ * * Run the TestSigned function and expect this response: "Got http status 200: Success"
+ * * Run the TestUnsigned function and expect this response: "Got http status 403: Success"
 */
 
 const app = new App();
